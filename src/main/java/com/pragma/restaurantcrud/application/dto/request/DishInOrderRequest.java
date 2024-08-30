@@ -9,9 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateDishRequest {
+public class DishInOrderRequest {
     private Long idDish;
-    private String description;
-    private Double price;
-    private Long idRestaurant;
+    private String name;
+    private Integer quantity;
+
 }

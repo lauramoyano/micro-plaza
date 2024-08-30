@@ -32,7 +32,9 @@ public class WebConfigSecurity {
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtEntryPoint))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/users/**").permitAll()
-                        .requestMatchers("/plaza/admin/**").authenticated()
+                        .requestMatchers("/plaza/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/plaza/owner/**").hasRole("OWNER")
+                        .requestMatchers("/plaza/customer/**").hasRole("CUSTOMER")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

@@ -21,3 +21,4 @@ logging:
 debug: true
 jwt:
   secret: clavesecreta123lauramoyanoesmuylinda
+

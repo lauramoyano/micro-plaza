@@ -39,8 +39,8 @@ public class RestaurantAdapter implements IRestaurantPersistencePort {
     }
 
     @Override
-    public Page<Restaurant> findAllRestaurants(Pageable pageable) {
-        return restaurantRepository.findAll(pageable).map(restaurantMapper::restaurantEntityToRestaurant);
+    public Page<Restaurant>  findAllByOrderByNameAsc(Pageable pageable) {
+        return restaurantRepository.findAllByOrderByNameAsc(pageable).map(restaurantMapper::restaurantEntityToRestaurant);
     }
 
 

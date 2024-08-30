@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface IRestaurantEntityMapper {
 
+
     RestaurantEntity restaurantToRestaurantEntity(Restaurant restaurant);
     Restaurant restaurantEntityToRestaurant(RestaurantEntity restaurantEntity);
 }

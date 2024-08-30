@@ -80,16 +80,16 @@ public class OwnerUsecase implements IOwnerService {
     @Override
     public Dish setDishVisibility(Long idDish, Long idRestaurant, boolean visibility, String token) {
         User userOwnerAuthenticated = getUserOwnerAuthenticated(token);
-        validateRestaurantExistenceAndIfBelongsToUser(idRestaurant, userOwnerAuthenticated.getIdUser());
-        return validateDishExistenceAndIfBelongsDishToRestaurantShouldReturnTheDishSavedAndUpdate(idDish, idRestaurant, visibility);
+        restaurantBelongsToUser(idRestaurant, userOwnerAuthenticated.getId());
+        return dishBelongsDishToRestaurantSavedAndUpdate(idDish, idRestaurant, visibility);
     }
 
     private User getUserOwnerAuthenticated(String tokenWithPrefixBearer) {
         String emailFromUserAuthenticatedByToken = this.jwtProvider.getAuthentication(tokenWithPrefixBearer.replace("Bearer ", "").trim()).getName();
-        return this.gateway.getByEmail(emailFromUserAuthenticatedByToken, tokenWithPrefixBearer);
+        return this.gateway.getUserByEmail(emailFromUserAuthenticatedByToken, tokenWithPrefixBearer);
     }
 
-    private void validateRestaurantExistenceAndIfBelongsToUser(Long idRestaurant, Long idUserOwnerAuthenticated) {
+    private void restaurantBelongsToUser(Long idRestaurant, Long idUserOwnerAuthenticated) {
         Restaurant restaurantFound = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
         if (restaurantFound == null) {
             throw new IllegalArgumentException("Restaurant not found");
@@ -98,7 +98,7 @@ public class OwnerUsecase implements IOwnerService {
         }
     }
 
-    private Dish validateDishExistenceAndIfBelongsDishToRestaurantShouldReturnTheDishSavedAndUpdate(Long idDish, Long idRestaurant, boolean active) {
+    private Dish dishBelongsDishToRestaurantSavedAndUpdate(Long idDish, Long idRestaurant, boolean active) {
         Dish dishFoundAndUpdateStatus = this.dishPersistencePort.findByIdDish(idDish);
         if (dishFoundAndUpdateStatus == null) {
             throw new IllegalArgumentException("Dish not found");

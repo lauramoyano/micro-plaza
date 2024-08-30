@@ -31,8 +31,8 @@ public class DishAdapter implements IDishPersistencePort {
     }
 
     @Override
-    public Page<Dish> findAllDishes(Pageable pageable, Long idRestaurant) {
-        return dishRepository.findDishEntitiesBy(pageable, idRestaurant)
+    public Page<Dish>  findAllDishesByRestaurantId(Pageable pageable, Long idRestaurant) {
+        return dishRepository.findByRestaurantIdRestaurantOrderByCategoryNameAsc(pageable, idRestaurant)
                 .filter(dish -> dish.getEnabled().equals(true)).map(this.dishMapper::mapDishEntityToDish)
                 .stream().collect(Collectors.collectingAndThen(Collectors.toList(), PageImpl::new));
     }

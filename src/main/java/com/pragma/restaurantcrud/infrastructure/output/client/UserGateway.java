@@ -30,9 +30,9 @@ public class UserGateway implements IGateway {
     }
 
     @Override
-    public User getByEmail(String email, String token) {
+    public User getUserByEmail(String email, String token) {
         return webClient.get()
-                .uri("/getByEmail/{email}", email)
+                .uri("/getUserByEmail/{email}", email)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
                 .bodyToMono(User.class)

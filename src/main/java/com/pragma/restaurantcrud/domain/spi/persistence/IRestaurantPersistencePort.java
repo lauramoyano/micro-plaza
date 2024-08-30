@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 public interface IRestaurantPersistencePort {
 
     Restaurant saveRestaurant(Restaurant restaurant);
-    Page<Restaurant> findAllRestaurants(Pageable pageable);
+    Page<Restaurant>  findAllByOrderByNameAsc(Pageable pageable);
     Restaurant findRestaurantById(Long idRestaurant);
     Restaurant updateRestaurant(Restaurant restaurant);
     boolean existsRestaurantById(Long idRestaurant);

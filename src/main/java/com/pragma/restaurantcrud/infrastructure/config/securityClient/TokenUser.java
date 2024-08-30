@@ -21,7 +21,7 @@ public class TokenUser implements  ITokenUser{
 
         try {
             this.webClient.get()
-                    .uri(uriBuilder -> uriBuilder.path("/users/validateToken")
+                    .uri(uriBuilder -> uriBuilder.path("/validateToken")
                             .build())
                     .header(HttpHeaders.AUTHORIZATION, token)
                     .exchangeToMono(clientResponse -> {

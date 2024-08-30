@@ -40,11 +40,12 @@ public class JwtProvider {
             String email = claims.getSubject();
             List<String> roles = claims.get("auth", List.class);
             return new UsernamePasswordAuthenticationToken(email, null,
-                    roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+                    roles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).collect(Collectors.toList()));  // Asegúrate de agregar "ROLE_" para que coincida con el formato Spring Security
         } catch (Exception e) {
             throw new AuthenticationCredentialsNotFoundException("Failed to parse JWT", e);
         }
     }
+
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -59,9 +60,22 @@ public class JwtProvider {
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
-            return tokenUser.isValidToken("Bearer "+token);
+            return tokenUser.isValidToken(token);
         } catch (MalformedJwtException | IllegalArgumentException e) {
             return false;
         }
     }
+    public String getEmailFromToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        } catch (Exception e) {
+            throw new AuthenticationCredentialsNotFoundException("Failed to parse JWT to get email", e);
+        }
+    }
+
 }

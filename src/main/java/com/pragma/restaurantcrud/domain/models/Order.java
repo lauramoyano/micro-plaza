@@ -1,6 +1,6 @@
 package com.pragma.restaurantcrud.domain.models;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 
@@ -8,7 +8,7 @@ public class Order {
 
     private  Long idOrder;
     private  Long idCustomer;
-    private LocalDate date;
+    private Date date;
     private  String status;
    private  EmployeeRestaurant idEmployeeRestaurant;
     private List<OrderDish> orderDishes;
@@ -17,7 +17,7 @@ public class Order {
     public Order() {
     }
 
-    public Order(Long idOrder, Long idCustomer, LocalDate date, String status, EmployeeRestaurant idEmployeeRestaurant, List<OrderDish> orderDishes, Restaurant idRestaurant) {
+    public Order(Long idOrder, Long idCustomer, Date date, String status, EmployeeRestaurant idEmployeeRestaurant, List<OrderDish> orderDishes, Restaurant idRestaurant) {
         this.idOrder = idOrder;
         this.idCustomer = idCustomer;
         this.date = date;
@@ -43,12 +43,12 @@ public class Order {
         this.idCustomer = idCustomer;
     }
 
-    public LocalDate getDate() {
+    public Date getDate() {
         return date;
     }
 
 
-    public void setDate(LocalDate date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 

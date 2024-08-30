@@ -5,13 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateDishRequest {
-    private Long idDish;
-    private String description;
-    private Double price;
+public class CreateOrderRequest {
     private Long idRestaurant;
+    private List<DishInOrderRequest> dishes;
+
 }

@@ -1,4 +1,4 @@
-package com.pragma.restaurantcrud.application.dto.request;
+package com.pragma.restaurantcrud.application.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,9 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateDishRequest {
-    private Long idDish;
-    private String description;
-    private Double price;
+public class RestaurantPageResponse {
+
     private Long idRestaurant;
+    private String name;
+    private String urlLogo;
 }

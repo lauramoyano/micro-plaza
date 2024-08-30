@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 public interface IDishPersistencePort {
     Dish save(Dish dish);
     Dish findByIdDish(Long idDish);
-    Page<Dish> findAllDishes(Pageable pageable, Long idRestaurant);
+    Page<Dish>  findAllDishesByRestaurantId(Pageable pageable, Long idRestaurant);
 }

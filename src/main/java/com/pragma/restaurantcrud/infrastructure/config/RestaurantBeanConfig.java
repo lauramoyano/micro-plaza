@@ -1,9 +1,11 @@
 package com.pragma.restaurantcrud.infrastructure.config;
 
 import com.pragma.restaurantcrud.domain.api.IAdminService;
+import com.pragma.restaurantcrud.domain.api.ICustomerService;
 import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
 import com.pragma.restaurantcrud.domain.usecase.AdminUsecase;
+import com.pragma.restaurantcrud.domain.usecase.CustomerUsecase;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.adapter.RestaurantAdapter;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.mapper.IRestaurantEntityMapper;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.repository.IRestaurantRepository;
@@ -27,4 +29,5 @@ public class RestaurantBeanConfig {
     public IAdminService adminService() {
         return new AdminUsecase(restaurantPersistencePort(), gateway);
     }
+
 }
