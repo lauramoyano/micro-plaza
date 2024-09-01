@@ -1,10 +1,7 @@
 package com.pragma.restaurantcrud.domain.usecase;
 
 import com.pragma.restaurantcrud.domain.api.IOwnerService;
-import com.pragma.restaurantcrud.domain.models.Category;
-import com.pragma.restaurantcrud.domain.models.Dish;
-import com.pragma.restaurantcrud.domain.models.Restaurant;
-import com.pragma.restaurantcrud.domain.models.User;
+import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.ICategoryPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IDishPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
@@ -108,5 +105,6 @@ public class OwnerUsecase implements IOwnerService {
         dishFoundAndUpdateStatus.setEnabled(active);
         return this.dishPersistencePort.save(dishFoundAndUpdateStatus);
     }
+
 
 }

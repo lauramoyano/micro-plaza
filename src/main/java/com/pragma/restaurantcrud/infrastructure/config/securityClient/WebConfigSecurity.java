@@ -35,6 +35,7 @@ public class WebConfigSecurity {
                         .requestMatchers("/plaza/admin/**").hasRole("ADMIN")
                         .requestMatchers("/plaza/owner/**").hasRole("OWNER")
                         .requestMatchers("/plaza/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/plaza/employee/**").hasRole("EMPLOYEE")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

@@ -31,7 +31,7 @@ public class Order {
         return idOrder;
     }
 
-    public void setIdOrder(Long id) {
+    public void setIdOrder(Long idOrder) {
         this.idOrder = idOrder;
     }
 
@@ -76,11 +76,11 @@ public class Order {
         this.orderDishes = orderDishes;
     }
 
-    public Restaurant getIdRestaurant() {
+    public Restaurant getRestaurant() {
         return idRestaurant;
     }
 
-    public void setIdRestaurant(Restaurant idRestaurant) {
+    public void setRestaurant(Restaurant idRestaurant) {
         this.idRestaurant = idRestaurant;
     }
 }

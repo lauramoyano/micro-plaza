@@ -29,11 +29,6 @@ public class RestaurantAdapter implements IRestaurantPersistencePort {
     }
 
     @Override
-    public Restaurant updateRestaurant(Restaurant restaurant) {
-        return restaurantMapper.restaurantEntityToRestaurant(restaurantRepository.save(restaurantMapper.restaurantToRestaurantEntity(restaurant)));
-    }
-
-    @Override
     public boolean existsRestaurantById(Long id) {
         return restaurantRepository.existsRestaurantByIdRestaurant(id);
     }
@@ -41,6 +36,11 @@ public class RestaurantAdapter implements IRestaurantPersistencePort {
     @Override
     public Page<Restaurant>  findAllByOrderByNameAsc(Pageable pageable) {
         return restaurantRepository.findAllByOrderByNameAsc(pageable).map(restaurantMapper::restaurantEntityToRestaurant);
+    }
+
+    @Override
+    public Restaurant findByIdOwner(Long idOwner) {
+        return restaurantMapper.restaurantEntityToRestaurant(restaurantRepository.findByIdOwner(idOwner));
     }
 
 

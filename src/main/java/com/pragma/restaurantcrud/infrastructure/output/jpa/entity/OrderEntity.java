@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "order")
+@Table(name ="`order`")
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,7 @@ public class OrderEntity {
     @JoinColumn(name = "idEmployeeRestaurant", referencedColumnName = "idEmployeeRestaurant")
     private EmployeeRestaurantEntity employeeRestaurant;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "idRestaurant", referencedColumnName = "idRestaurant")
     private RestaurantEntity restaurant;
 

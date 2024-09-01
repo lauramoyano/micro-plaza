@@ -1,10 +1,12 @@
 package com.pragma.restaurantcrud.application.mapper.request;
 
 import com.pragma.restaurantcrud.application.dto.request.CreateDishRequest;
+import com.pragma.restaurantcrud.application.dto.request.EmployeeRestaurantRequest;
 import com.pragma.restaurantcrud.application.dto.request.UpdateDishRequest;
 import com.pragma.restaurantcrud.application.dto.request.VisibilityDishRequest;
 import com.pragma.restaurantcrud.domain.models.Category;
 import com.pragma.restaurantcrud.domain.models.Dish;
+import com.pragma.restaurantcrud.domain.models.EmployeeRestaurant;
 import com.pragma.restaurantcrud.domain.models.Restaurant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,7 +19,7 @@ public interface IOwnerRequestMapper {
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "idDish", ignore = true)
     @Mapping(target = "restaurant", source = "idRestaurant", qualifiedByName = "mapRestaurant")
-    @Mapping(target = "category.", source = "idCategory", qualifiedByName = "mapCategory")
+    @Mapping(target = "category", source = "idCategory", qualifiedByName = "mapCategory")
     Dish createDishRequestDtoToDishModel(CreateDishRequest createDishRequestDto);
 
     @Mapping(target = "name", ignore = true)

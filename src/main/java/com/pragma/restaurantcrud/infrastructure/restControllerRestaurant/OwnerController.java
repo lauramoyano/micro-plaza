@@ -1,9 +1,10 @@
 package com.pragma.restaurantcrud.infrastructure.restControllerRestaurant;
 
 import com.pragma.restaurantcrud.application.dto.request.CreateDishRequest;
+import com.pragma.restaurantcrud.application.dto.request.EmployeeRestaurantRequest;
 import com.pragma.restaurantcrud.application.dto.request.UpdateDishRequest;
-import com.pragma.restaurantcrud.application.dto.request.VisibilityDishRequest;
 import com.pragma.restaurantcrud.application.dto.response.CreateDishResponse;
+import com.pragma.restaurantcrud.application.dto.response.EmployeeRestaurantResponse;
 import com.pragma.restaurantcrud.application.dto.response.UpdateDishResponse;
 import com.pragma.restaurantcrud.application.handler.IOwnerServiceHandler;
 import lombok.RequiredArgsConstructor;
@@ -42,4 +43,13 @@ public class OwnerController {
         UpdateDishResponse updateDishResponse = ownerServiceHandler.setDishVisibility(idDish, idRestaurant, visibility, token);
         return new ResponseEntity<>(updateDishResponse, HttpStatus.OK);
     }
+
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<EmployeeRestaurantResponse> saveEmployeeUserRestaurant(@RequestBody EmployeeRestaurantRequest employeeRestaurant, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return new ResponseEntity<>(this.ownerServiceHandler.saveUserEmployeeInTheRestaurant(employeeRestaurant, token), HttpStatus.CREATED);
+
+    }
+
+
 }

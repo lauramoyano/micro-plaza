@@ -53,49 +53,44 @@ public class CustomerUsecase  implements ICustomerService {
 
     @Override
     public Order createOrder(Order order, String token) {
-        if (!jwtProvider.validateToken(token))
-            throw new IllegalArgumentException("Invalid token");
-        final String email = jwtProvider.getEmailFromToken(token);
-        final User user = this.gateway.getUserByEmail(email, token);
-        final Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(order.getIdRestaurant().getIdRestaurant());
-        if (restaurant == null)
+        String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
+        User user = this.gateway.getUserByEmail(email, token);
+
+        Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(order.getRestaurant().getIdRestaurant());
+        if (restaurant == null) {
             throw new IllegalArgumentException("The restaurant does not exist");
+        }
+
         Long idRestaurant = restaurant.getIdRestaurant();
         Long idCustomer = user.getId();
-        final long ordesInprocess = this.orderPersistencePort.findByRestaurantIdAndCustomerId(idRestaurant, idCustomer).stream()
-                .filter(order1 -> !order1.getStatus().equals("CANCELADO") && !order1.getStatus().equals("ENTREGADO")).count();
 
-        if (ordesInprocess > 0)
+        long ordersInProcess = this.orderPersistencePort.findByRestaurantIdAndCustomerId(idRestaurant, idCustomer).stream()
+                .filter(o -> !o.getStatus().equals("CANCELADO") && !o.getStatus().equals("ENTREGADO")).count();
+
+        if (ordersInProcess > 0) {
             throw new IllegalArgumentException("You have an order in process");
+        }
+        List<OrderDish> ordersDishes = order.getOrderDishes();
 
-        List<OrderDish> orderDishes = order.getOrderDishes();
-        order.setDate(new Date());
         order.setIdCustomer(idCustomer);
+        order.setDate(new Date());
         order.setStatus("PENDIENTE");
         order.setOrderDishes(new ArrayList<>());
-        Order orderCreated = this.orderPersistencePort.save(order);
+        // Guarda el objeto Order
+        Order orderModelSaved = this.orderPersistencePort.save(order);
 
-        orderCreated.setOrderDishes(orderDishes);
-        List<OrderDish> orderDishesCreated = createOrderDishes(orderCreated);
+        orderModelSaved.setOrderDishes(ordersDishes);
 
-        List<OrderDish> orderDishesSaved = this.orderDishPersistencePort.saveAll(orderDishesCreated);
-        orderCreated.setOrderDishes(orderDishesSaved);
-        return orderCreated;
+        // Asigna manualmente el Order a cada OrderDish después de guardar el Order
+        ordersDishes.forEach(orderDish -> orderDish.setOrder(orderModelSaved));
+
+
+        // Persiste las relaciones de OrderDish
+        List<OrderDish> orderDishModelsSaved = this.orderDishPersistencePort.saveAll(ordersDishes);
+        orderModelSaved.setOrderDishes(orderDishModelsSaved);
+
+        return orderModelSaved;
     }
 
-        private List<OrderDish> createOrderDishes(Order order) {
-            List<OrderDish> orderDishes = new ArrayList<>();
-            for (OrderDish orderDish : order.getOrderDishes()) {
-                Dish dish = this.dishPersistencePort.findByIdDish(orderDish.getIdDish().getIdDish());
-                if (dish == null)
-                    throw new IllegalArgumentException("The dish does not exist");
-                OrderDish orderDishCreated = new OrderDish();
-                orderDishCreated.setIdDish(dish);
-                orderDishCreated.setQuantity(orderDish.getQuantity());
-                orderDishCreated.setIdOrder(order);
-                orderDishes.add(orderDishCreated);
-            }
-            return orderDishes;
-        }
 
 }

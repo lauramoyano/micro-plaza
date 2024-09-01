@@ -27,7 +27,10 @@ public interface ICustomerResponseMapper {
 
     List<DishResponse> toDishResponseList(List<Dish> dishes);
 
+    @Mapping(target ="idOrder", source = "idOrder")
     CreateOrderResponse toOrderCreatedResponse(Order order);
+
+
 
 
 

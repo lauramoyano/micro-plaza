@@ -26,19 +26,19 @@ public class OrderDish {
         this.idOrderDish = idOrderDish;
     }
 
-    public Order getIdOrder() {
+    public Order getOrder() {
         return idOrder;
     }
 
-    public void setIdOrder(Order idOrder) {
+    public void setOrder(Order idOrder) {
         this.idOrder = idOrder;
     }
 
-    public Dish getIdDish() {
+    public Dish getDish() {
         return idDish;
     }
 
-    public void setIdDish(Dish idDish) {
+    public void setDish(Dish idDish) {
         this.idDish = idDish;
     }
 

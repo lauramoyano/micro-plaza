@@ -13,5 +13,6 @@ public interface IRestaurantRepository extends JpaRepository<RestaurantEntity, L
    boolean existsRestaurantByName(String name);
     boolean existsRestaurantByIdRestaurant(Long id);
     Page<RestaurantEntity> findAllByOrderByNameAsc(Pageable pageable);
+    RestaurantEntity findByIdOwner(Long idOwner);
 
 }

@@ -6,6 +6,8 @@ import com.pragma.restaurantcrud.infrastructure.output.jpa.entity.OrderEntity;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.mapper.IOrderEntityMapper;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.repository.IOrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +31,17 @@ public class OrderAdapter implements IOrderPersistencePort {
 
     }
 
+    @Override
+    public Page<Order> findAllOrdersByStatusAndSizeItemsByPage(Pageable pageable, Long idRestaurant, String status) {
+        return this.orderRepository.findAllByRestaurantIdRestaurantAndStatus( idRestaurant, status, pageable)
+                .map(orderMapper::mapOrderEntityToOrder);
+    }
+
+
+    @Override
+    public Order findById(Long idOrder) {
+        return orderMapper.mapOrderEntityToOrder(orderRepository.findById(idOrder).orElse(null));
+    }
 
 
     @Override

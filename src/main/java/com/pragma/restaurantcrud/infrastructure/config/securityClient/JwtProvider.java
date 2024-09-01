@@ -65,17 +65,5 @@ public class JwtProvider {
             return false;
         }
     }
-    public String getEmailFromToken(String token) {
-        try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            return claims.getSubject();
-        } catch (Exception e) {
-            throw new AuthenticationCredentialsNotFoundException("Failed to parse JWT to get email", e);
-        }
-    }
 
 }

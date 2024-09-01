@@ -11,7 +11,6 @@ import com.pragma.restaurantcrud.domain.api.ICustomerService;
 import com.pragma.restaurantcrud.domain.models.Order;
 import com.pragma.restaurantcrud.domain.models.OrderDish;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -53,10 +52,14 @@ public class CustomerServiceimpl implements ICustomerServiceHandler {
         Order order = customerRequestMapper.orderRequestToOrder(createOrderRequest);
         final List<OrderDish> orderDishes = createOrderRequest.getDishes().stream()
                 .map(customerRequestMapper::dishInOrderRequestToOrderDish)
-                .collect(Collectors.toList());
+                        .toList();
+
+        orderDishes.forEach(orderDish -> orderDish.setOrder(order));
+
         order.setOrderDishes(orderDishes);
         return customerResponseMapper.toOrderCreatedResponse(customerService.createOrder(order, token));
     }
+
 
 
 }

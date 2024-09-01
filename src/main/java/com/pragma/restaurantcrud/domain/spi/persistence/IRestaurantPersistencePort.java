@@ -9,8 +9,8 @@ public interface IRestaurantPersistencePort {
     Restaurant saveRestaurant(Restaurant restaurant);
     Page<Restaurant>  findAllByOrderByNameAsc(Pageable pageable);
     Restaurant findRestaurantById(Long idRestaurant);
-    Restaurant updateRestaurant(Restaurant restaurant);
     boolean existsRestaurantById(Long idRestaurant);
     boolean existsRestaurantByName(String name);
+    Restaurant findByIdOwner(Long idOwner);
 
 }
