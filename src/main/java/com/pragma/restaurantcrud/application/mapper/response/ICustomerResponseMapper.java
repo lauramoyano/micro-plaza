@@ -1,9 +1,6 @@
 package com.pragma.restaurantcrud.application.mapper.response;
 
-import com.pragma.restaurantcrud.application.dto.response.CreateOrderResponse;
-import com.pragma.restaurantcrud.application.dto.response.DishResponse;
-import com.pragma.restaurantcrud.application.dto.response.DishesPageResponse;
-import com.pragma.restaurantcrud.application.dto.response.RestaurantPageResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
 import com.pragma.restaurantcrud.domain.models.Dish;
 import com.pragma.restaurantcrud.domain.models.Order;
 import com.pragma.restaurantcrud.domain.models.Restaurant;
@@ -29,6 +26,9 @@ public interface ICustomerResponseMapper {
 
     @Mapping(target ="idOrder", source = "idOrder")
     CreateOrderResponse toOrderCreatedResponse(Order order);
+
+    @Mapping(target = "idOrder", source = "idOrder")
+    OrderNotifyResponse toOrderNotifyResponse(Order order);
 
 
 

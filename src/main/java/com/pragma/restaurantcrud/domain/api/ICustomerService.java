@@ -10,5 +10,6 @@ public interface ICustomerService {
     Page<Restaurant> findAllByOrderByNameAsc(Integer page, Integer size);
     Page<Dish> findAllDishesByRestaurantId(Long restaurantId, Integer page, Integer size);
     Order createOrder(Order order, String token);
+    Order cancelOrder(Long idOrder, String token);
 
 }

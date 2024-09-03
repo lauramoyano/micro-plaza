@@ -1,6 +1,6 @@
 package com.pragma.restaurantcrud.infrastructure.config.securityClient;
 
-import org.mapstruct.Qualifier;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,7 +13,7 @@ public class TokenUser implements  ITokenUser{
 
     private final WebClient webClient;
 
-    public TokenUser(WebClient webClient) {
+    public TokenUser(@Qualifier("webClientUsers") WebClient webClient) {
         this.webClient = webClient;
     }
     @Override

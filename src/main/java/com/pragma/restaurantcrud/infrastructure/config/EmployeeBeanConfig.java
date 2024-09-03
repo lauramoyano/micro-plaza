@@ -5,6 +5,7 @@ import com.pragma.restaurantcrud.domain.spi.persistence.IEmployeePersistencePort
 import com.pragma.restaurantcrud.domain.spi.persistence.IOrderPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
 import com.pragma.restaurantcrud.domain.usecase.EmployeeUsecase;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.adapter.EmployeeRestaurantAdapter;
@@ -22,20 +23,13 @@ public class EmployeeBeanConfig {
 
     private final IGateway gateway;
     private final JwtProvider jwtProvider;
-    private final IOrderRepository orderRepository;
-    private final IOrderEntityMapper order;
-    private final IEmployeeRestaurantRepository employeeRepository;
-    private final IEmployeeRestaurantMapper employeeMapper;
+    private final IEmployeePersistencePort employeePersistencePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IOrderPersistencePort orderPersistencePort;
+    private final IMessage messengerService;
 
     @Bean
-    public IEmployeePersistencePort employeePersistencePort() {
-        return new EmployeeRestaurantAdapter(employeeRepository, employeeMapper, orderRepository, order);
-    }
-
-    @Bean
-    public IEmployeeService employeeService(IEmployeePersistencePort employeePersistencePort) {
-        return new EmployeeUsecase(employeePersistencePort,  restaurantPersistencePort, orderPersistencePort ,gateway, jwtProvider);
+    public IEmployeeService employeeService() {
+        return new EmployeeUsecase(employeePersistencePort, restaurantPersistencePort, orderPersistencePort, gateway, jwtProvider, messengerService);
     }
 }

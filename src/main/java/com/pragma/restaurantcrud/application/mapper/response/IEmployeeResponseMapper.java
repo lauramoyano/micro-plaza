@@ -3,6 +3,7 @@ package com.pragma.restaurantcrud.application.mapper.response;
 
 import com.pragma.restaurantcrud.application.dto.response.DishInOrderResponse;
 import com.pragma.restaurantcrud.application.dto.response.EmployeeRestaurantResponse;
+import com.pragma.restaurantcrud.application.dto.response.OrderNotifyResponse;
 import com.pragma.restaurantcrud.application.dto.response.OrdersPageResponse;
 import com.pragma.restaurantcrud.domain.models.EmployeeRestaurant;
 import com.pragma.restaurantcrud.domain.models.Order;
@@ -22,6 +23,8 @@ public interface IEmployeeResponseMapper {
     OrdersPageResponse toOrder(Order order);
 
     EmployeeRestaurantResponse employeeRestaurantToEmployeeRestaurantResponse(EmployeeRestaurant employeeRestaurant);
+
+    OrderNotifyResponse orderToOrderNotifyResponse(Order order);
 
     @Named("mapDishes")
     default List<DishInOrderResponse> mapDishes(List<OrderDish> orderDishes) {

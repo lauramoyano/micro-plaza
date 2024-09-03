@@ -11,7 +11,8 @@ public interface IEmployeeService {
     EmployeeRestaurant createEmployeeRestaurant(EmployeeRestaurant employeeRestaurant, String token);
     Page<Order> getAllOrdersFilterByStatusAndSizeItemsByPage(Integer size, Integer page, String status, String token);
     List<Order>  assignEmployeeToOrderAndChangeStatusToInPreparation(List<Long> idOrders, String token);
-
+    Order orderReadyAndNotifyCustomer(Long idOrder, String token);
+    Order orderDelivered(Long idOrder, String token);
 
 
 

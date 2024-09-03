@@ -1,11 +1,9 @@
 package com.pragma.restaurantcrud.infrastructure.config;
 
 import com.pragma.restaurantcrud.domain.api.ICustomerService;
-import com.pragma.restaurantcrud.domain.spi.persistence.IDishPersistencePort;
-import com.pragma.restaurantcrud.domain.spi.persistence.IOrderDishPersistencePort;
-import com.pragma.restaurantcrud.domain.spi.persistence.IOrderPersistencePort;
-import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
+import com.pragma.restaurantcrud.domain.spi.persistence.*;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
 import com.pragma.restaurantcrud.domain.usecase.CustomerUsecase;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.adapter.OrderAdapter;
@@ -26,21 +24,17 @@ public class OrderBeanConfig {
     private final IOrderRepository orderRepository;
     private final IOrderDishRepository orderDishRepository;
     private final IOrderEntityMapper orderMapper;
+    private final IEmployeePersistencePort employeePersistencePort;
     private final IGateway gateway;
     private final JwtProvider jwtProvider;
-
-    @Bean
-    public IOrderPersistencePort orderPersistencePort() {
-        return new OrderAdapter(orderRepository, orderMapper);
-    }
-
+    private final IMessage messengerService;
+    private  final IOrderPersistencePort orderPersistencePort;
     @Bean
     public IOrderDishPersistencePort orderDishPersistencePort() {
         return new OrderDishAdapter(orderDishRepository, orderMapper);
     }
-
     @Bean
     public ICustomerService customerService() {
-        return new CustomerUsecase(dishPersistencePort, restaurantPersistencePort, orderPersistencePort(), orderDishPersistencePort(), gateway, jwtProvider);
+        return new CustomerUsecase(dishPersistencePort,restaurantPersistencePort,orderPersistencePort, orderDishPersistencePort(),  messengerService, gateway, jwtProvider);
     }
 }

@@ -4,7 +4,9 @@ import com.pragma.restaurantcrud.domain.api.ICustomerService;
 import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.*;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
+import com.pragma.restaurantcrud.infrastructure.output.client.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -19,9 +21,13 @@ public class CustomerUsecase  implements ICustomerService {
     private final JwtProvider jwtProvider;
     private final IOrderPersistencePort orderPersistencePort;
     private final IOrderDishPersistencePort orderDishPersistencePort;
+    private final IMessage messengerService;
+
 
     public CustomerUsecase(IDishPersistencePort dishPersistencePort
-            , IRestaurantPersistencePort restaurantPersistencePort, IOrderPersistencePort orderPersistencePort,IOrderDishPersistencePort iOrderDishPersistencePort  ,IGateway gateway,
+            , IRestaurantPersistencePort restaurantPersistencePort, IOrderPersistencePort orderPersistencePort,
+                           IOrderDishPersistencePort iOrderDishPersistencePort,
+                           IMessage messengerService,IGateway gateway,
                            JwtProvider jwtProvider) {
         this.dishPersistencePort = dishPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
@@ -29,6 +35,7 @@ public class CustomerUsecase  implements ICustomerService {
         this.orderDishPersistencePort = iOrderDishPersistencePort;
         this.gateway = gateway;
         this.jwtProvider = jwtProvider;
+        this.messengerService = messengerService;
     }
 
     @Override
@@ -65,7 +72,7 @@ public class CustomerUsecase  implements ICustomerService {
         Long idCustomer = user.getId();
 
         long ordersInProcess = this.orderPersistencePort.findByRestaurantIdAndCustomerId(idRestaurant, idCustomer).stream()
-                .filter(o -> !o.getStatus().equals("CANCELADO") && !o.getStatus().equals("ENTREGADO")).count();
+                .filter(o -> !o.getStatus().equals("CANCELED") && !o.getStatus().equals("DELIVERED")).count();
 
         if (ordersInProcess > 0) {
             throw new IllegalArgumentException("You have an order in process");
@@ -90,6 +97,54 @@ public class CustomerUsecase  implements ICustomerService {
         orderModelSaved.setOrderDishes(orderDishModelsSaved);
 
         return orderModelSaved;
+    }
+
+    @Override
+    public Order cancelOrder(Long idOrder, String token) {
+        String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
+        User user = this.gateway.getUserByEmail(email, token);
+        Long idCustomer = user.getId();
+
+        Long idRestaurant = this.orderPersistencePort.findById(idOrder).getRestaurant().getIdRestaurant();
+        Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
+
+        if (restaurant == null)
+            throw new IllegalArgumentException("Restaurant not found");
+
+        Order order = this.orderPersistencePort.findById(idOrder);
+        if (!idCustomer.equals(order.getIdCustomer()))
+            throw new IllegalArgumentException("The order does not belong to the customer");
+
+        if (order == null) {
+            throw new IllegalArgumentException("The order does not exist");
+        } else if (!order.getIdCustomer().equals(idCustomer)) {
+            throw new IllegalArgumentException("The order does not belong to the customer");
+        } else if (order.getStatus().equals("CANCELED")) {
+            throw new IllegalArgumentException("The order is already canceled");
+        } else if (order.getStatus().equals("DELIVERED")) {
+            throw new IllegalArgumentException("The order is already delivered");
+        }else if (order.getStatus().equals("READY")) {
+            throw new IllegalArgumentException("The order is already ready");
+        }else if (order.getStatus().equals("IN_PREPARATION")) {
+            throw new IllegalArgumentException("The order is in preparation");
+        }
+        UserDto userCustomerToNotifyOfYourOrder = this.gateway.getUserById( order.getIdCustomer(), token);
+        Long pinGenerated = encryptOrderId(order.getIdOrder());
+        final String message = "Your order was canceled, the pin is: " + pinGenerated;
+        PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
+        messengerService.sendNotification(pinMessage, token);
+        order.setStatus("CANCELED");
+        return this.orderPersistencePort.save(order);
+    }
+    private long encryptOrderId(Long idOrder) {
+        String addFiveCharacters = String.format("%05d", idOrder);
+        StringBuilder orderIdEncryption = new StringBuilder();
+        for (int index = 0; index < addFiveCharacters.length(); index++) {
+            char digitToEncrypt  = addFiveCharacters.charAt(index);
+            int originalCharacterToEncrypt = Character.getNumericValue(digitToEncrypt);
+            orderIdEncryption.append((originalCharacterToEncrypt + 3) % 10);
+        }
+        return Long.parseLong(orderIdEncryption.toString());
     }
 
 

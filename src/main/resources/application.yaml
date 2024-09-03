@@ -22,3 +22,9 @@ debug: true
 jwt:
   secret: clavesecreta123lauramoyanoesmuylinda
 
+access:
+    url:
+      user: http://localhost:8089/users
+      message: http://localhost:8098/message
+
+

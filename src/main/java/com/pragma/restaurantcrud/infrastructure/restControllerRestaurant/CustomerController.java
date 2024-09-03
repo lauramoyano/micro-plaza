@@ -1,10 +1,7 @@
 package com.pragma.restaurantcrud.infrastructure.restControllerRestaurant;
 
 import com.pragma.restaurantcrud.application.dto.request.CreateOrderRequest;
-import com.pragma.restaurantcrud.application.dto.response.CreateDishResponse;
-import com.pragma.restaurantcrud.application.dto.response.CreateOrderResponse;
-import com.pragma.restaurantcrud.application.dto.response.DishesPageResponse;
-import com.pragma.restaurantcrud.application.dto.response.RestaurantPageResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
 import com.pragma.restaurantcrud.application.handler.ICustomerServiceHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,5 +39,12 @@ public class CustomerController {
     public ResponseEntity<CreateOrderResponse> createOrder(@RequestBody CreateOrderRequest createOrderRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         final CreateOrderResponse createOrderResponse = customerServiceHandler.createOrder(createOrderRequest, token);
         return new ResponseEntity<>(createOrderResponse, HttpStatus.CREATED);
+    }
+
+    @PatchMapping("/cancelOrder/{idOrder}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<OrderNotifyResponse> cancelOrder(@PathVariable Long idOrder, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        final OrderNotifyResponse createOrderResponse = customerServiceHandler.cancelOrder(idOrder, token);
+        return new ResponseEntity<>(createOrderResponse, HttpStatus.OK);
     }
 }

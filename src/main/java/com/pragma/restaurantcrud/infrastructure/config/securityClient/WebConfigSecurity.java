@@ -32,6 +32,7 @@ public class WebConfigSecurity {
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtEntryPoint))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/users/**").permitAll()
+                        .requestMatchers("/message/**").permitAll()
                         .requestMatchers("/plaza/admin/**").hasRole("ADMIN")
                         .requestMatchers("/plaza/owner/**").hasRole("OWNER")
                         .requestMatchers("/plaza/customer/**").hasRole("CUSTOMER")
