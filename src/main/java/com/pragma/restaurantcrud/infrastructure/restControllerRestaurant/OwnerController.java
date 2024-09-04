@@ -22,15 +22,15 @@ public class OwnerController {
 
     @PostMapping("/createDish")
     @PreAuthorize("hasRole('OWNER')")
-    public ResponseEntity<CreateDishResponse> createDish(@RequestBody CreateDishRequest createDishRequest) {
-        CreateDishResponse createDishResponse = ownerServiceHandler.createDish(createDishRequest);
+    public ResponseEntity<CreateDishResponse> createDish(@RequestBody CreateDishRequest createDishRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        CreateDishResponse createDishResponse = ownerServiceHandler.createDish(createDishRequest, token);
         return new ResponseEntity<>(createDishResponse, HttpStatus.CREATED);
     }
 
     @PatchMapping("/updateDish")
     @PreAuthorize("hasRole('OWNER')")
-    public ResponseEntity<UpdateDishResponse> updateDish(@RequestBody UpdateDishRequest updateDishRequest) {
-        UpdateDishResponse updateDishResponse = ownerServiceHandler.updateDish(updateDishRequest);
+    public ResponseEntity<UpdateDishResponse> updateDish(@RequestBody UpdateDishRequest updateDishRequest, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        UpdateDishResponse updateDishResponse = ownerServiceHandler.updateDish(updateDishRequest, token);
         return new ResponseEntity<>(updateDishResponse, HttpStatus.OK);
     }
 
@@ -50,6 +50,8 @@ public class OwnerController {
         return new ResponseEntity<>(this.ownerServiceHandler.saveUserEmployeeInTheRestaurant(employeeRestaurant, token), HttpStatus.CREATED);
 
     }
+
+
 
 
 }

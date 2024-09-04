@@ -4,6 +4,7 @@ import com.pragma.restaurantcrud.application.dto.response.*;
 import com.pragma.restaurantcrud.domain.models.Dish;
 import com.pragma.restaurantcrud.domain.models.Order;
 import com.pragma.restaurantcrud.domain.models.Restaurant;
+import com.pragma.restaurantcrud.domain.models.TraceabilityModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -30,8 +31,7 @@ public interface ICustomerResponseMapper {
     @Mapping(target = "idOrder", source = "idOrder")
     OrderNotifyResponse toOrderNotifyResponse(Order order);
 
-
-
+    OrderTraceabilityResponseDto toOrderTraceabilityResponseDto(TraceabilityModel traceabilityModel);
 
 
 }

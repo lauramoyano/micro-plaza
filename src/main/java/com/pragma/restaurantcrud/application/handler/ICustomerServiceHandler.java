@@ -1,11 +1,10 @@
 package com.pragma.restaurantcrud.application.handler;
 
 import com.pragma.restaurantcrud.application.dto.request.CreateOrderRequest;
-import com.pragma.restaurantcrud.application.dto.response.CreateOrderResponse;
-import com.pragma.restaurantcrud.application.dto.response.DishesPageResponse;
-import com.pragma.restaurantcrud.application.dto.response.OrderNotifyResponse;
-import com.pragma.restaurantcrud.application.dto.response.RestaurantPageResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public interface ICustomerServiceHandler {
 
@@ -13,4 +12,6 @@ public interface ICustomerServiceHandler {
     Page<DishesPageResponse> getAllDishes(Integer page, Integer size, Long idRestaurant);
     CreateOrderResponse createOrder(CreateOrderRequest createOrderRequest, String token);
     OrderNotifyResponse cancelOrder(Long idOrder, String token);
+    List<OrderTraceabilityResponseDto> orderTraceability(Long idOrder, String token);
+
 }

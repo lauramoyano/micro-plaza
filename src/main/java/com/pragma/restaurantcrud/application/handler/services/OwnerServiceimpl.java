@@ -32,16 +32,16 @@ public class OwnerServiceimpl implements IOwnerServiceHandler {
     private final IEmployeeService employeeService;
 
     @Override
-    public CreateDishResponse createDish(CreateDishRequest createDishRequest) {
+    public CreateDishResponse createDish(CreateDishRequest createDishRequest, String token) {
         Dish dish = ownerRequestMapper.createDishRequestDtoToDishModel(createDishRequest);
-        Dish dishCreated = ownerService.createDish(dish);
+        Dish dishCreated = ownerService.createDish(dish, token);
         return ownerResponseMapper.dishToCreateDishResponse(dishCreated);
     }
 
     @Override
-    public UpdateDishResponse updateDish(UpdateDishRequest updateDishRequest) {
+    public UpdateDishResponse updateDish(UpdateDishRequest updateDishRequest, String token) {
         Dish dish = ownerRequestMapper.updateDishRequestDtoToDishModel(updateDishRequest);
-        Dish dishUpdated = ownerService.updateDish(dish);
+        Dish dishUpdated = ownerService.updateDish(dish, token);
         return ownerResponseMapper.dishToUpdateDishResponse(dishUpdated);
     }
 

@@ -26,5 +26,6 @@ access:
     url:
       user: http://localhost:8089/users
       message: http://localhost:8098/message
+      traceability: http://localhost:8099/traceability
 
 

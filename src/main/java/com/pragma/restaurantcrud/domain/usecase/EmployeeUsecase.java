@@ -7,13 +7,17 @@ import com.pragma.restaurantcrud.domain.spi.persistence.IOrderPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.ITraceability;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
 import com.pragma.restaurantcrud.infrastructure.output.client.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class EmployeeUsecase implements IEmployeeService{
 
@@ -23,26 +27,32 @@ public class EmployeeUsecase implements IEmployeeService{
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IOrderPersistencePort orderPersistencePort;
     private final IMessage messengerService;
+    private  final ITraceability traceabilityService;
 
     public EmployeeUsecase(IEmployeePersistencePort employeePersistencePort,
-            IRestaurantPersistencePort restaurantPersistencePort , IOrderPersistencePort orderPersistencePort,  IGateway userGateway, JwtProvider jwtProvider, IMessage messengerService) {
+            IRestaurantPersistencePort restaurantPersistencePort , IOrderPersistencePort orderPersistencePort,  IGateway userGateway, JwtProvider jwtProvider, IMessage messengerService, ITraceability traceabilityService) {
         this.employeePersistencePort = employeePersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.orderPersistencePort = orderPersistencePort;
         this.userGateway = userGateway;
         this.jwtProvider = jwtProvider;
         this.messengerService = messengerService;
+        this.traceabilityService = traceabilityService;
     }
 
     @Override
     public EmployeeRestaurant createEmployeeRestaurant(EmployeeRestaurant employeeRestaurant, String token) {
         String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
         User user = this.userGateway.getUserByEmail(email, token);
+
         if (user == null)
             throw new IllegalArgumentException("User not found");
         final Restaurant restaurant =  restaurantPersistencePort.findRestaurantById(employeeRestaurant.getIdRestaurant());
         if (restaurant == null)
             throw new IllegalArgumentException("Restaurant not found");
+
+        if (!restaurant.getIdOwner().equals(user.getId()))
+            throw new IllegalArgumentException("The user is not the owner of the restaurant");
         employeeRestaurant.setIdRestaurant(restaurant.getIdRestaurant());
         return this.employeePersistencePort.save(employeeRestaurant);
     }
@@ -80,6 +90,7 @@ public class EmployeeUsecase implements IEmployeeService{
 
         for (Long idOrder : idOrders) {
             Order orderFoundToAssignEmployee = this.orderPersistencePort.findById(idOrder);
+            String emailCustomer= this.userGateway.getUserById(orderFoundToAssignEmployee.getIdCustomer(), token).getEmail();
 
             if (orderFoundToAssignEmployee == null) {
                 throw new IllegalArgumentException("The order does not exist");
@@ -93,6 +104,19 @@ public class EmployeeUsecase implements IEmployeeService{
             orderFoundToAssignEmployee.setStatus("IN_PREPARATION");
             this.orderPersistencePort.save(orderFoundToAssignEmployee);
             ordersAssigned.add(orderFoundToAssignEmployee);
+            LocalDateTime date = LocalDateTime.now();
+            String traceabilityId = UUID.randomUUID().toString();
+            TraceabilityModel traceabilityModel =
+                    new TraceabilityModel(traceabilityId,
+                            orderFoundToAssignEmployee.getIdOrder().intValue(),
+                            orderFoundToAssignEmployee.getIdCustomer().intValue(),
+                            emailCustomer,
+                            "IN_PREPARATION",
+                            user.getId().intValue(),
+                            user.getEmail(),
+                            date,
+                            date);
+            traceabilityService.saveTraceability(traceabilityModel);
         }
         return ordersAssigned;
     }
@@ -104,11 +128,12 @@ public class EmployeeUsecase implements IEmployeeService{
         EmployeeRestaurant userEmployeeFound = this.employeePersistencePort.findById(user.getId());
         Long idRestaurant = userEmployeeFound.getIdRestaurant();
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
-
+        LocalDateTime date = LocalDateTime.now();
         if (restaurant == null)
             throw new IllegalArgumentException("Restaurant not found");
 
         Order orderFound = this.orderPersistencePort.findById(idOrder);
+
         if (orderFound == null) {
             throw new IllegalArgumentException("The order does not exist");
         } else if (!userEmployeeFound.getIdRestaurant().equals(orderFound.getRestaurant().getIdRestaurant())) {
@@ -118,10 +143,25 @@ public class EmployeeUsecase implements IEmployeeService{
         }
         UserDto userCustomerToNotifyOfYourOrder = this.userGateway.getUserById( orderFound.getIdCustomer(), token);
         Long pinGenerated = encryptOrderId(orderFound.getIdOrder());
+        String emailCustomer= this.userGateway.getUserById(orderFound.getIdCustomer(), token).getEmail();
         final String message = "Your order is ready to be delivered, the pin is: " + pinGenerated;
         PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
          messengerService.sendNotification(pinMessage, token);
         orderFound.setStatus("READY");
+        String traceabilityId = UUID.randomUUID().toString();
+
+
+        TraceabilityModel traceabilityModel =
+                new TraceabilityModel(traceabilityId,
+                        orderFound.getIdOrder().intValue(),
+                        orderFound.getIdCustomer().intValue(),
+                        emailCustomer,
+                        "READY",
+                        user.getId().intValue(),
+                        user.getEmail(),
+                        date,
+                        date);
+        traceabilityService.saveTraceability(traceabilityModel);
         this.orderPersistencePort.save(orderFound);
         return orderFound;
     }
@@ -130,12 +170,14 @@ public class EmployeeUsecase implements IEmployeeService{
     public Order orderDelivered(Long idOrder,  String token) {
         String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
         User user = this.userGateway.getUserByEmail(email, token);
+
         EmployeeRestaurant userEmployeeFound = this.employeePersistencePort.findById(user.getId());
         Long idRestaurant = userEmployeeFound.getIdRestaurant();
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
         if (restaurant == null)
             throw new IllegalArgumentException("Restaurant not found");
         Order orderFound = this.orderPersistencePort.findById(decryptOrderPin(String.valueOf(idOrder)));
+        String emailCustomer= this.userGateway.getUserById(orderFound.getIdCustomer(), token).getEmail();
         if (orderFound == null) {
             throw new IllegalArgumentException("The order does not exist");
         } else if (!orderFound.getStatus().equals("READY")) {
@@ -145,6 +187,19 @@ public class EmployeeUsecase implements IEmployeeService{
         }else if (!userEmployeeFound.getIdRestaurant().equals(orderFound.getRestaurant().getIdRestaurant())) {
             throw new IllegalArgumentException("The employee does not belong to this restaurant");
         }
+        LocalDateTime date = LocalDateTime.now();
+        String traceabilityId = UUID.randomUUID().toString();
+        TraceabilityModel traceabilityModel =
+                new TraceabilityModel(traceabilityId,
+                        orderFound.getIdOrder().intValue(),
+                        orderFound.getIdCustomer().intValue(),
+                        emailCustomer,
+                        "DELIVERED",
+                        user.getId().intValue(),
+                        user.getEmail(),
+                        date,
+                        date);
+        traceabilityService.saveTraceability(traceabilityModel);
         orderFound.setStatus("DELIVERED");
         this.orderPersistencePort.save(orderFound);
         return orderFound;

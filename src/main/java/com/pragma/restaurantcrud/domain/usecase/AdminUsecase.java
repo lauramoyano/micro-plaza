@@ -24,6 +24,7 @@ public class AdminUsecase implements IAdminService {
     public Restaurant createRestaurant(Restaurant restaurant, String token) {
         if(existsRestaurantByName(restaurant.getName())) {
             throw new IllegalArgumentException("Restaurant already exists");
+
         }
         validateRestaurant(restaurant);
         UserDto userDto = gateway.getUserById(restaurant.getIdOwner(), token);
@@ -51,30 +52,34 @@ public class AdminUsecase implements IAdminService {
         }
     }
 
-    private  void validateRestaurantFields(Restaurant restaurant) {
-        System.out.println("Name: " + restaurant.getName());
-        System.out.println("Address: " + restaurant.getAddress());
-        System.out.println("IdOwner: " + restaurant.getIdOwner());
-        System.out.println("Phone: " + restaurant.getPhone());
-        System.out.println("Nit: " + restaurant.getNit());
-        System.out.println("UrlLogo: " + restaurant.getUrlLogo());
-        if (restaurant.getName() == null ||  restaurant.getName().replace(" ","").isEmpty() ||
-                restaurant.getAddress() == null || restaurant.getAddress().replace(" ","").isEmpty() ||
-                restaurant.getIdOwner() == null || restaurant.getPhone() == null || restaurant.getPhone().replace(" ","").isEmpty() ||
-                restaurant.getNit() == null || restaurant.getUrlLogo() == null || restaurant.getUrlLogo().replace(" ","").isEmpty()
-         ) {
-            throw new IllegalArgumentException("All fields are required");
+    private void validateRestaurantFields(Restaurant restaurant) {
+        if (restaurant.getName() == null || restaurant.getName().replace(" ", "").isEmpty()) {
+            throw new IllegalArgumentException("Name is required");
+        }
+        if (restaurant.getAddress() == null || restaurant.getAddress().replace(" ", "").isEmpty()) {
+            throw new IllegalArgumentException("Address is required");
+        }
+        if (restaurant.getIdOwner() == null) {
+            throw new IllegalArgumentException("IdOwner is required");
+        }
+        if (restaurant.getPhone() == null || restaurant.getPhone().replace(" ", "").isEmpty()) {
+            throw new IllegalArgumentException("Phone is required");
+        }
+        if (restaurant.getNit() == null) {
+            throw new IllegalArgumentException("Nit is required");
+        }
+        if (restaurant.getUrlLogo() == null || restaurant.getUrlLogo().replace(" ", "").isEmpty()) {
+            throw new IllegalArgumentException("UrlLogo is required");
         }
     }
 
+
     //validate phone structure
     private void validatePhone(String phone) {
-        if (!phone.matches("\\+?\\d{1,13}")) {
+        if (!phone.matches("(\\+\\d{12})|(\\d{10})")) {
             throw new IllegalArgumentException("Phone must be a maximum of 13 characters and can contain the symbol +");
         }
-        if (!phone.matches("\\+?\\d+")) {
-            throw new IllegalArgumentException("Phone must be numeric and can contain the symbol +");
-        }
+
     }
 
     // validate nit
@@ -82,7 +87,7 @@ public class AdminUsecase implements IAdminService {
         if (nit == null) {
             throw new IllegalArgumentException("Nit is required");
         }
-        if (String.valueOf(nit).matches("\\D")) {
+        if (!String.valueOf(nit).matches("\\d+")) {
             throw new IllegalArgumentException("Nit must be numeric");
         }
     }

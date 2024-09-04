@@ -15,6 +15,9 @@ public class WebClientConfig {
     @Value("${access.url.message}")
     private String urlMessage;
 
+    @Value("${access.url.traceability}")
+    private String urlTraceability;
+
     @Bean("webClientUsers")
     public WebClient webClientUsers() {
         return WebClient.builder()
@@ -27,6 +30,13 @@ public class WebClientConfig {
     public WebClient messageClient() {
         return WebClient.builder()
                 .baseUrl(urlMessage)
+                .build();
+    }
+
+    @Bean("webClientTraceability")
+    public WebClient traceabilityClient() {
+        return WebClient.builder()
+                .baseUrl(urlTraceability)
                 .build();
     }
 

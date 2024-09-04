@@ -26,7 +26,10 @@ public class OwnerUsecase implements IOwnerService {
     }
 
     @Override
-    public Dish createDish(Dish dish) {
+    public Dish createDish(Dish dish, String token) {
+        User userOwnerAuthenticated = getUserOwnerAuthenticated(token);
+        Long idRestaurant = dish.getRestaurant().getIdRestaurant();
+        restaurantBelongsToUser(idRestaurant, userOwnerAuthenticated.getId());
         if(dish.getPrice() <= 0)
             throw new IllegalArgumentException("Price must be greater than zero");
         Restaurant restaurantModel = this.restaurantPersistencePort.findRestaurantById(dish.getRestaurant().getIdRestaurant());
@@ -35,6 +38,7 @@ public class OwnerUsecase implements IOwnerService {
         Category categoryModel = this.categoryPersistencePort.findByIdCategory(dish.getCategory().getIdCategory());
         if(categoryModel == null)
             throw new IllegalArgumentException("The category does not exist");
+
         dish.setRestaurant(restaurantModel);
         dish.setCategory(categoryModel);
         dish.setEnabled(true);
@@ -64,11 +68,17 @@ public class OwnerUsecase implements IOwnerService {
     }
 
     @Override
-    public Dish updateDish(Dish dish) {
+    public Dish updateDish(Dish dish, String token) {
         Dish existingDish = dishPersistencePort.findByIdDish(dish.getIdDish());
         if (existingDish == null) {
             throw new IllegalArgumentException("Dish not found");
         }
+        String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
+        User user = this.gateway.getUserByEmail(email, token);
+
+        if(!user.getId().equals(existingDish.getRestaurant().getIdOwner()))
+            throw new IllegalArgumentException("The user is not the owner of the restaurant");
+
         existingDish.setPrice(dish.getPrice());
         existingDish.setDescription(dish.getDescription());
         return dishPersistencePort.save(existingDish);

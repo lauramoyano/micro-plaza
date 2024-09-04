@@ -5,14 +5,17 @@ import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.*;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.ITraceability;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
 import com.pragma.restaurantcrud.infrastructure.output.client.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class CustomerUsecase  implements ICustomerService {
     private final IDishPersistencePort dishPersistencePort;
@@ -22,13 +25,15 @@ public class CustomerUsecase  implements ICustomerService {
     private final IOrderPersistencePort orderPersistencePort;
     private final IOrderDishPersistencePort orderDishPersistencePort;
     private final IMessage messengerService;
+    private final ITraceability traceability;
 
 
     public CustomerUsecase(IDishPersistencePort dishPersistencePort
             , IRestaurantPersistencePort restaurantPersistencePort, IOrderPersistencePort orderPersistencePort,
                            IOrderDishPersistencePort iOrderDishPersistencePort,
                            IMessage messengerService,IGateway gateway,
-                           JwtProvider jwtProvider) {
+                           JwtProvider jwtProvider,
+                           ITraceability traceability) {
         this.dishPersistencePort = dishPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.orderPersistencePort = orderPersistencePort;
@@ -36,6 +41,7 @@ public class CustomerUsecase  implements ICustomerService {
         this.gateway = gateway;
         this.jwtProvider = jwtProvider;
         this.messengerService = messengerService;
+        this.traceability = traceability;
     }
 
     @Override
@@ -133,6 +139,18 @@ public class CustomerUsecase  implements ICustomerService {
         final String message = "Your order was canceled, the pin is: " + pinGenerated;
         PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
         messengerService.sendNotification(pinMessage, token);
+        LocalDateTime date = LocalDateTime.now();
+        String traceabilityId = UUID.randomUUID().toString();
+        TraceabilityModel traceabilityModel = new TraceabilityModel(traceabilityId,
+                order.getIdOrder().intValue(),
+                user.getId().intValue(),
+                user.getEmail(),
+                "CANCELED",
+                0,
+                "Not assigned",
+                date,
+                date);
+        traceability.saveTraceability(traceabilityModel);
         order.setStatus("CANCELED");
         return this.orderPersistencePort.save(order);
     }
@@ -145,6 +163,24 @@ public class CustomerUsecase  implements ICustomerService {
             orderIdEncryption.append((originalCharacterToEncrypt + 3) % 10);
         }
         return Long.parseLong(orderIdEncryption.toString());
+    }
+
+    @Override
+    public List<TraceabilityModel> findTraceabilityByOrderId(Long idOrder, String token) {
+        String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
+        User user = this.gateway.getUserByEmail(email, token);
+        Order order = this.orderPersistencePort.findById(idOrder);
+        if (order == null) {
+            throw new IllegalArgumentException("The order does not exist");
+        } else if (!order.getIdCustomer().equals(user.getId())) {
+            throw new IllegalArgumentException("The order does not belong to the customer");
+        }
+        Integer orderId = idOrder.intValue();
+        List<TraceabilityModel> traceabilityModels   = traceability.getAllTraceability(orderId);
+        if(traceabilityModels.isEmpty())
+            throw new IllegalArgumentException("There are no traceability");
+        return traceabilityModels;
+
     }
 
 

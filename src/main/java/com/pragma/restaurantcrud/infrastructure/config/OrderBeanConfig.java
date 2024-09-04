@@ -4,6 +4,7 @@ import com.pragma.restaurantcrud.domain.api.ICustomerService;
 import com.pragma.restaurantcrud.domain.spi.persistence.*;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IMessage;
+import com.pragma.restaurantcrud.domain.spi.servicePortClient.ITraceability;
 import com.pragma.restaurantcrud.domain.usecase.CustomerUsecase;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
 import com.pragma.restaurantcrud.infrastructure.output.jpa.adapter.OrderAdapter;
@@ -29,12 +30,13 @@ public class OrderBeanConfig {
     private final JwtProvider jwtProvider;
     private final IMessage messengerService;
     private  final IOrderPersistencePort orderPersistencePort;
+    private final ITraceability traceability;
     @Bean
     public IOrderDishPersistencePort orderDishPersistencePort() {
         return new OrderDishAdapter(orderDishRepository, orderMapper);
     }
     @Bean
     public ICustomerService customerService() {
-        return new CustomerUsecase(dishPersistencePort,restaurantPersistencePort,orderPersistencePort, orderDishPersistencePort(),  messengerService, gateway, jwtProvider);
+        return new CustomerUsecase(dishPersistencePort,restaurantPersistencePort,orderPersistencePort, orderDishPersistencePort(),  messengerService, gateway, jwtProvider, traceability);
     }
 }

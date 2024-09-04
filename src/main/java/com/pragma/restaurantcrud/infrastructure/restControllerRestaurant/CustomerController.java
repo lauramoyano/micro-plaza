@@ -3,6 +3,7 @@ package com.pragma.restaurantcrud.infrastructure.restControllerRestaurant;
 import com.pragma.restaurantcrud.application.dto.request.CreateOrderRequest;
 import com.pragma.restaurantcrud.application.dto.response.*;
 import com.pragma.restaurantcrud.application.handler.ICustomerServiceHandler;
+import com.pragma.restaurantcrud.infrastructure.output.client.OrderTraceabilityRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -10,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -47,4 +50,12 @@ public class CustomerController {
         final OrderNotifyResponse createOrderResponse = customerServiceHandler.cancelOrder(idOrder, token);
         return new ResponseEntity<>(createOrderResponse, HttpStatus.OK);
     }
+
+    @PatchMapping("/orderTraceability/{idOrder}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<OrderTraceabilityResponseDto>> orderTraceability(@PathVariable Long idOrder, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        final List<OrderTraceabilityResponseDto> orderTraceabilityResponse = customerServiceHandler.orderTraceability(idOrder, token);
+        return new ResponseEntity<>(orderTraceabilityResponse, HttpStatus.OK);
+    }
+
 }

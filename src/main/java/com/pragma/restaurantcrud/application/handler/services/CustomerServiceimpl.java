@@ -1,10 +1,7 @@
 package com.pragma.restaurantcrud.application.handler.services;
 
 import com.pragma.restaurantcrud.application.dto.request.CreateOrderRequest;
-import com.pragma.restaurantcrud.application.dto.response.CreateOrderResponse;
-import com.pragma.restaurantcrud.application.dto.response.DishesPageResponse;
-import com.pragma.restaurantcrud.application.dto.response.OrderNotifyResponse;
-import com.pragma.restaurantcrud.application.dto.response.RestaurantPageResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
 import com.pragma.restaurantcrud.application.handler.ICustomerServiceHandler;
 import com.pragma.restaurantcrud.application.mapper.request.ICustomerRequestMapper;
 import com.pragma.restaurantcrud.application.mapper.response.ICustomerResponseMapper;
@@ -66,6 +63,11 @@ public class CustomerServiceimpl implements ICustomerServiceHandler {
         return customerResponseMapper.toOrderNotifyResponse(customerService.cancelOrder(idOrder, token));
     }
 
-
-
+    @Override
+    public List<OrderTraceabilityResponseDto> orderTraceability(Long idOrder, String token) {
+        return customerService.findTraceabilityByOrderId(idOrder, token)
+                .stream()
+                .map(customerResponseMapper::toOrderTraceabilityResponseDto)
+                .collect(Collectors.toList());
+    }
 }

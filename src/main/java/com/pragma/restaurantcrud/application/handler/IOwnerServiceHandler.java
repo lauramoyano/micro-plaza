@@ -9,8 +9,8 @@ import com.pragma.restaurantcrud.application.dto.response.EmployeeRestaurantResp
 import com.pragma.restaurantcrud.application.dto.response.UpdateDishResponse;
 
 public interface IOwnerServiceHandler {
-    CreateDishResponse createDish(CreateDishRequest createDishRequest);
-    UpdateDishResponse updateDish(UpdateDishRequest updateDishRequest);
+    CreateDishResponse createDish(CreateDishRequest createDishRequest, String token);
+    UpdateDishResponse updateDish(UpdateDishRequest updateDishRequest, String token);
     UpdateDishResponse setDishVisibility(Long idDish, Long idRestaurant, boolean visibility, String token);
     EmployeeRestaurantResponse saveUserEmployeeInTheRestaurant(EmployeeRestaurantRequest employeeRestaurantRequest, String token);
 }
