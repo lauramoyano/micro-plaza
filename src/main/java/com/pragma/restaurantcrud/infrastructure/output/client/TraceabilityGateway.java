@@ -1,5 +1,7 @@
 package com.pragma.restaurantcrud.infrastructure.output.client;
 
+import com.pragma.restaurantcrud.application.dto.response.dto.OrderDto;
+import com.pragma.restaurantcrud.application.dto.response.dto.RestaurantEfficiencyResponseDto;
 import com.pragma.restaurantcrud.domain.models.TraceabilityModel;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.ITraceability;
 import org.springframework.stereotype.Service;
@@ -40,9 +42,17 @@ public class TraceabilityGateway implements ITraceability {
     }
 
     @Override
-    public TraceabilityModel getTraceability(Long idOrder) {
-        // TODO Auto-generated method stub
-        return null;
+    public TraceabilityModel getTraceability(Integer idOrder, String currentStatus) {
+            return webClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/find-by-order-id-and-current-status")
+                            .queryParam("orderId", idOrder)
+                            .queryParam("currentStatus", currentStatus)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(OrderTraceabilityRequestDto.class)
+                    .map(traceabilityMapper::mapToTraceabilityModel)
+                    .block();
     }
 
     @Override
@@ -51,8 +61,21 @@ public class TraceabilityGateway implements ITraceability {
                 .uri("/findAll/{orderId}", idOrder)
                 .retrieve()
                 .bodyToFlux(OrderTraceabilityRequestDto.class)
-                .map(traceabilityMapper::mapToTraceabilityModel) // Usar el método de mapeo inverso correcto
+                .map(traceabilityMapper::mapToTraceabilityModel)
                 .collectList()
                 .block();
     }
+
+    @Override
+    public RestaurantEfficiencyResponseDto getRestaurantEfficiency(List<OrderDto> orderModelList, String token) {
+        return webClient.post()
+                .uri("/restaurant-efficiency")
+                .bodyValue(orderModelList)
+                .retrieve()
+                .bodyToMono(RestaurantEfficiencyResponseDto.class)
+                .block();
+    }
+
+
+
 }

@@ -4,9 +4,9 @@ package com.pragma.restaurantcrud.application.handler.services;
 import com.pragma.restaurantcrud.application.dto.request.CreateDishRequest;
 import com.pragma.restaurantcrud.application.dto.request.EmployeeRestaurantRequest;
 import com.pragma.restaurantcrud.application.dto.request.UpdateDishRequest;
-import com.pragma.restaurantcrud.application.dto.response.CreateDishResponse;
-import com.pragma.restaurantcrud.application.dto.response.EmployeeRestaurantResponse;
-import com.pragma.restaurantcrud.application.dto.response.UpdateDishResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
+import com.pragma.restaurantcrud.application.dto.response.dto.OrderDto;
+import com.pragma.restaurantcrud.application.dto.response.dto.RestaurantEfficiencyResponseDto;
 import com.pragma.restaurantcrud.application.handler.IOwnerServiceHandler;
 import com.pragma.restaurantcrud.application.mapper.request.IEmployeeRequestMapper;
 import com.pragma.restaurantcrud.application.mapper.request.IOwnerRequestMapper;
@@ -19,6 +19,8 @@ import com.pragma.restaurantcrud.domain.models.EmployeeRestaurant;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Transactional
@@ -56,6 +58,11 @@ public class OwnerServiceimpl implements IOwnerServiceHandler {
         final EmployeeRestaurant employeeRestaurant = employeeRequestMapper.employeeRestaurantRequestDtoToEmployeeRestaurantModel(employeeRestaurantRequest);
         final EmployeeRestaurant employeeRestaurantSaved = employeeService.createEmployeeRestaurant(employeeRestaurant, token);
         return employeeResponseMapper.employeeRestaurantToEmployeeRestaurantResponse(employeeRestaurantSaved);
+    }
+
+    @Override
+    public RestaurantEfficiencyResponseDto getRestaurantEfficiency(List<OrderDto> orderModelList, String token) {
+        return null;
     }
 
 

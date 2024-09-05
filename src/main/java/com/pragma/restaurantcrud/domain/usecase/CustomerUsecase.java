@@ -118,6 +118,7 @@ public class CustomerUsecase  implements ICustomerService {
             throw new IllegalArgumentException("Restaurant not found");
 
         Order order = this.orderPersistencePort.findById(idOrder);
+        UserDto userCustomerToNotifyOfYourOrder = this.gateway.getUserById( order.getIdCustomer(), token);
         if (!idCustomer.equals(order.getIdCustomer()))
             throw new IllegalArgumentException("The order does not belong to the customer");
 
@@ -125,16 +126,14 @@ public class CustomerUsecase  implements ICustomerService {
             throw new IllegalArgumentException("The order does not exist");
         } else if (!order.getIdCustomer().equals(idCustomer)) {
             throw new IllegalArgumentException("The order does not belong to the customer");
-        } else if (order.getStatus().equals("CANCELED")) {
+        } else if (!order.getStatus().equals("PENDIENTE")) {
+            Long pinGenerated = encryptOrderId(order.getIdOrder());
+            final String message = "Your order is already being processed " + pinGenerated;
+            PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
+            messengerService.sendNotification(pinMessage, token);
             throw new IllegalArgumentException("The order is already canceled");
-        } else if (order.getStatus().equals("DELIVERED")) {
-            throw new IllegalArgumentException("The order is already delivered");
-        }else if (order.getStatus().equals("READY")) {
-            throw new IllegalArgumentException("The order is already ready");
-        }else if (order.getStatus().equals("IN_PREPARATION")) {
-            throw new IllegalArgumentException("The order is in preparation");
         }
-        UserDto userCustomerToNotifyOfYourOrder = this.gateway.getUserById( order.getIdCustomer(), token);
+
         Long pinGenerated = encryptOrderId(order.getIdOrder());
         final String message = "Your order was canceled, the pin is: " + pinGenerated;
         PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
@@ -170,6 +169,7 @@ public class CustomerUsecase  implements ICustomerService {
         String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
         User user = this.gateway.getUserByEmail(email, token);
         Order order = this.orderPersistencePort.findById(idOrder);
+
         if (order == null) {
             throw new IllegalArgumentException("The order does not exist");
         } else if (!order.getIdCustomer().equals(user.getId())) {

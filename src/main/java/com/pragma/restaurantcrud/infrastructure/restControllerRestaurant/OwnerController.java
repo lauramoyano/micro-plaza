@@ -3,10 +3,11 @@ package com.pragma.restaurantcrud.infrastructure.restControllerRestaurant;
 import com.pragma.restaurantcrud.application.dto.request.CreateDishRequest;
 import com.pragma.restaurantcrud.application.dto.request.EmployeeRestaurantRequest;
 import com.pragma.restaurantcrud.application.dto.request.UpdateDishRequest;
-import com.pragma.restaurantcrud.application.dto.response.CreateDishResponse;
-import com.pragma.restaurantcrud.application.dto.response.EmployeeRestaurantResponse;
-import com.pragma.restaurantcrud.application.dto.response.UpdateDishResponse;
+import com.pragma.restaurantcrud.application.dto.response.*;
+import com.pragma.restaurantcrud.application.dto.response.dto.OrderDto;
+import com.pragma.restaurantcrud.application.dto.response.dto.RestaurantEfficiencyResponseDto;
 import com.pragma.restaurantcrud.application.handler.IOwnerServiceHandler;
+import com.pragma.restaurantcrud.infrastructure.output.client.TraceabilityGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,11 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/plaza/owner")
 public class OwnerController {
     private final IOwnerServiceHandler ownerServiceHandler;
+    private final TraceabilityGateway traceabilityGateway;
 
     @PostMapping("/createDish")
     @PreAuthorize("hasRole('OWNER')")
@@ -49,6 +53,12 @@ public class OwnerController {
     public ResponseEntity<EmployeeRestaurantResponse> saveEmployeeUserRestaurant(@RequestBody EmployeeRestaurantRequest employeeRestaurant, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         return new ResponseEntity<>(this.ownerServiceHandler.saveUserEmployeeInTheRestaurant(employeeRestaurant, token), HttpStatus.CREATED);
 
+    }
+
+    @PostMapping("/restaurantEfficiency")
+    @PreAuthorize("hasRole('OWNER')")
+    public RestaurantEfficiencyResponseDto getRestaurantEfficiency(@RequestBody List<OrderDto> orderModelList, @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return traceabilityGateway.getRestaurantEfficiency(orderModelList, token);
     }
 
 

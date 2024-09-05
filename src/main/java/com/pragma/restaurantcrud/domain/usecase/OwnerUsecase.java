@@ -1,5 +1,7 @@
 package com.pragma.restaurantcrud.domain.usecase;
 
+import com.pragma.restaurantcrud.application.dto.response.dto.OrderDto;
+import com.pragma.restaurantcrud.application.dto.response.dto.RestaurantEfficiencyResponseDto;
 import com.pragma.restaurantcrud.domain.api.IOwnerService;
 import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.ICategoryPersistencePort;
@@ -7,6 +9,8 @@ import com.pragma.restaurantcrud.domain.spi.persistence.IDishPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IRestaurantPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
 import com.pragma.restaurantcrud.infrastructure.config.securityClient.JwtProvider;
+
+import java.util.List;
 
 public class OwnerUsecase implements IOwnerService {
     private final IDishPersistencePort dishPersistencePort;
@@ -114,6 +118,13 @@ public class OwnerUsecase implements IOwnerService {
         }
         dishFoundAndUpdateStatus.setEnabled(active);
         return this.dishPersistencePort.save(dishFoundAndUpdateStatus);
+    }
+
+
+    @Override
+    public RestaurantEfficiencyResponseDto getRestaurantEfficiency(List<Order> orderModelList, String token) {
+
+        return null;
     }
 
 

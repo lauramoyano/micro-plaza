@@ -141,6 +141,8 @@ public class EmployeeUsecase implements IEmployeeService{
         } else if (!orderFound.getStatus().equals("IN_PREPARATION")) {
             throw new IllegalArgumentException("The order is not in preparation");
         }
+        LocalDateTime startDate = traceabilityService.getTraceability(orderFound.getIdOrder().intValue(), "IN_PREPARATION").getOrderStartDate();
+
         UserDto userCustomerToNotifyOfYourOrder = this.userGateway.getUserById( orderFound.getIdCustomer(), token);
         Long pinGenerated = encryptOrderId(orderFound.getIdOrder());
         String emailCustomer= this.userGateway.getUserById(orderFound.getIdCustomer(), token).getEmail();
@@ -159,7 +161,7 @@ public class EmployeeUsecase implements IEmployeeService{
                         "READY",
                         user.getId().intValue(),
                         user.getEmail(),
-                        date,
+                        startDate,
                         date);
         traceabilityService.saveTraceability(traceabilityModel);
         this.orderPersistencePort.save(orderFound);
@@ -187,6 +189,8 @@ public class EmployeeUsecase implements IEmployeeService{
         }else if (!userEmployeeFound.getIdRestaurant().equals(orderFound.getRestaurant().getIdRestaurant())) {
             throw new IllegalArgumentException("The employee does not belong to this restaurant");
         }
+        LocalDateTime startDate = traceabilityService.getTraceability(orderFound.getIdOrder().intValue(), "IN_PREPARATION").getOrderStartDate();
+
         LocalDateTime date = LocalDateTime.now();
         String traceabilityId = UUID.randomUUID().toString();
         TraceabilityModel traceabilityModel =
@@ -197,7 +201,7 @@ public class EmployeeUsecase implements IEmployeeService{
                         "DELIVERED",
                         user.getId().intValue(),
                         user.getEmail(),
-                        date,
+                        startDate,
                         date);
         traceabilityService.saveTraceability(traceabilityModel);
         orderFound.setStatus("DELIVERED");
