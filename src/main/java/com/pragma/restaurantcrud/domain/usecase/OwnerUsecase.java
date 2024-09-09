@@ -3,6 +3,10 @@ package com.pragma.restaurantcrud.domain.usecase;
 import com.pragma.restaurantcrud.application.dto.response.dto.OrderDto;
 import com.pragma.restaurantcrud.application.dto.response.dto.RestaurantEfficiencyResponseDto;
 import com.pragma.restaurantcrud.domain.api.IOwnerService;
+import com.pragma.restaurantcrud.domain.exeptions.EmptyFields;
+import com.pragma.restaurantcrud.domain.exeptions.InvalidData;
+import com.pragma.restaurantcrud.domain.exeptions.NotBelong;
+import com.pragma.restaurantcrud.domain.exeptions.NotFound;
 import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.ICategoryPersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IDishPersistencePort;
@@ -35,13 +39,13 @@ public class OwnerUsecase implements IOwnerService {
         Long idRestaurant = dish.getRestaurant().getIdRestaurant();
         restaurantBelongsToUser(idRestaurant, userOwnerAuthenticated.getId());
         if(dish.getPrice() <= 0)
-            throw new IllegalArgumentException("Price must be greater than zero");
+            throw new InvalidData("Price must be greater than zero");
         Restaurant restaurantModel = this.restaurantPersistencePort.findRestaurantById(dish.getRestaurant().getIdRestaurant());
         if(restaurantModel == null)
-            throw new IllegalArgumentException("The restaurant does not exist");
+            throw new NotFound("The restaurant does not exist");
         Category categoryModel = this.categoryPersistencePort.findByIdCategory(dish.getCategory().getIdCategory());
         if(categoryModel == null)
-            throw new IllegalArgumentException("The category does not exist");
+            throw new NotFound("The category does not exist");
 
         dish.setRestaurant(restaurantModel);
         dish.setCategory(categoryModel);
@@ -61,13 +65,13 @@ public class OwnerUsecase implements IOwnerService {
                 dish.getDescription().replace(" ", "").isEmpty() ||
                 dish.getUrlImage().replace(" ", "").isEmpty() ||
                 dish.getCategory() == null) {
-            throw new IllegalArgumentException("All fields are required and price must be a positive integer greater than 0");
+            throw new EmptyFields("All fields are required and price must be a positive integer greater than 0");
         }
     }
 
     private void validateDishAssociation(Dish dish) {
         if (dish.getRestaurant() == null) {
-            throw new IllegalArgumentException("Dish must be associated with a restaurant");
+            throw new NotFound("Dish must be associated with a restaurant");
         }
     }
 
@@ -75,13 +79,13 @@ public class OwnerUsecase implements IOwnerService {
     public Dish updateDish(Dish dish, String token) {
         Dish existingDish = dishPersistencePort.findByIdDish(dish.getIdDish());
         if (existingDish == null) {
-            throw new IllegalArgumentException("Dish not found");
+            throw new NotFound("Dish not found");
         }
         String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
         User user = this.gateway.getUserByEmail(email, token);
 
         if(!user.getId().equals(existingDish.getRestaurant().getIdOwner()))
-            throw new IllegalArgumentException("The user is not the owner of the restaurant");
+            throw new NotBelong("The user is not the owner of the restaurant");
 
         existingDish.setPrice(dish.getPrice());
         existingDish.setDescription(dish.getDescription());
@@ -103,18 +107,18 @@ public class OwnerUsecase implements IOwnerService {
     private void restaurantBelongsToUser(Long idRestaurant, Long idUserOwnerAuthenticated) {
         Restaurant restaurantFound = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
         if (restaurantFound == null) {
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
         } else if (!restaurantFound.getIdOwner().equals(idUserOwnerAuthenticated)) {
-            throw new IllegalArgumentException("The restaurant does not belong to the user");
+            throw new NotBelong("The restaurant does not belong to the user");
         }
     }
 
     private Dish dishBelongsDishToRestaurantSavedAndUpdate(Long idDish, Long idRestaurant, boolean active) {
         Dish dishFoundAndUpdateStatus = this.dishPersistencePort.findByIdDish(idDish);
         if (dishFoundAndUpdateStatus == null) {
-            throw new IllegalArgumentException("Dish not found");
+            throw new NotFound("Dish not found");
         } else if (!dishFoundAndUpdateStatus.getRestaurant().getIdRestaurant().equals(idRestaurant)) {
-            throw new IllegalArgumentException("The dish does not belong to the restaurant");
+            throw new NotBelong("The dish does not belong to the restaurant");
         }
         dishFoundAndUpdateStatus.setEnabled(active);
         return this.dishPersistencePort.save(dishFoundAndUpdateStatus);

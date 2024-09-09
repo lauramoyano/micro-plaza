@@ -1,6 +1,9 @@
 package com.pragma.restaurantcrud.domain.usecase;
 
 import com.pragma.restaurantcrud.domain.api.ICustomerService;
+import com.pragma.restaurantcrud.domain.exeptions.AlreadyExist;
+import com.pragma.restaurantcrud.domain.exeptions.NotBelong;
+import com.pragma.restaurantcrud.domain.exeptions.NotFound;
 import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.*;
 import com.pragma.restaurantcrud.domain.spi.servicePortClient.IGateway;
@@ -48,7 +51,7 @@ public class CustomerUsecase  implements ICustomerService {
     public Page<Restaurant> findAllByOrderByNameAsc (Integer page, Integer size) {
         Page<Restaurant> restaurants = this.restaurantPersistencePort.findAllByOrderByNameAsc(PageRequest.of(page, size));
         if(restaurants.isEmpty())
-            throw new IllegalArgumentException("There are no restaurants");
+            throw new NotFound("There are no restaurants");
         return restaurants;
     }
 
@@ -56,11 +59,11 @@ public class CustomerUsecase  implements ICustomerService {
     public Page<Dish> findAllDishesByRestaurantId(Long restaurantId, Integer page, Integer size) {
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(restaurantId);
         if(restaurant == null)
-            throw new IllegalArgumentException("The restaurant does not exist");
+            throw new NotFound("The restaurant does not exist");
 
         Page<Dish> dishes = this.dishPersistencePort.findAllDishesByRestaurantId(PageRequest.of(page, size), restaurantId);
         if(dishes.isEmpty())
-            throw new IllegalArgumentException("There are no dishes");
+            throw new NotFound("There are no dishes");
         return dishes;
     }
 
@@ -71,7 +74,7 @@ public class CustomerUsecase  implements ICustomerService {
 
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(order.getRestaurant().getIdRestaurant());
         if (restaurant == null) {
-            throw new IllegalArgumentException("The restaurant does not exist");
+            throw new NotFound("The restaurant does not exist");
         }
 
         Long idRestaurant = restaurant.getIdRestaurant();
@@ -81,7 +84,7 @@ public class CustomerUsecase  implements ICustomerService {
                 .filter(o -> !o.getStatus().equals("CANCELED") && !o.getStatus().equals("DELIVERED")).count();
 
         if (ordersInProcess > 0) {
-            throw new IllegalArgumentException("You have an order in process");
+            throw new AlreadyExist("You have an order in process");
         }
         List<OrderDish> ordersDishes = order.getOrderDishes();
 
@@ -89,16 +92,10 @@ public class CustomerUsecase  implements ICustomerService {
         order.setDate(new Date());
         order.setStatus("PENDIENTE");
         order.setOrderDishes(new ArrayList<>());
-        // Guarda el objeto Order
         Order orderModelSaved = this.orderPersistencePort.save(order);
 
         orderModelSaved.setOrderDishes(ordersDishes);
-
-        // Asigna manualmente el Order a cada OrderDish después de guardar el Order
         ordersDishes.forEach(orderDish -> orderDish.setOrder(orderModelSaved));
-
-
-        // Persiste las relaciones de OrderDish
         List<OrderDish> orderDishModelsSaved = this.orderDishPersistencePort.saveAll(ordersDishes);
         orderModelSaved.setOrderDishes(orderDishModelsSaved);
 
@@ -115,27 +112,27 @@ public class CustomerUsecase  implements ICustomerService {
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
 
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
 
         Order order = this.orderPersistencePort.findById(idOrder);
         UserDto userCustomerToNotifyOfYourOrder = this.gateway.getUserById( order.getIdCustomer(), token);
         if (!idCustomer.equals(order.getIdCustomer()))
-            throw new IllegalArgumentException("The order does not belong to the customer");
+            throw new NotBelong( "The order does not belong to the customer");
 
         if (order == null) {
-            throw new IllegalArgumentException("The order does not exist");
+            throw new NotFound("The order does not exist");
         } else if (!order.getIdCustomer().equals(idCustomer)) {
-            throw new IllegalArgumentException("The order does not belong to the customer");
+            throw new NotBelong("The order does not belong to the customer");
         } else if (!order.getStatus().equals("PENDIENTE")) {
             Long pinGenerated = encryptOrderId(order.getIdOrder());
-            final String message = "Your order is already being processed " + pinGenerated;
+            String message = "Your order is already being processed " + pinGenerated;
             PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
             messengerService.sendNotification(pinMessage, token);
-            throw new IllegalArgumentException("The order is already canceled");
+            throw new AlreadyExist("The order is already canceled");
         }
 
         Long pinGenerated = encryptOrderId(order.getIdOrder());
-        final String message = "Your order was canceled, the pin is: " + pinGenerated;
+        String message = "Your order was canceled, the pin is: " + pinGenerated;
         PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
         messengerService.sendNotification(pinMessage, token);
         LocalDateTime date = LocalDateTime.now();
@@ -171,14 +168,14 @@ public class CustomerUsecase  implements ICustomerService {
         Order order = this.orderPersistencePort.findById(idOrder);
 
         if (order == null) {
-            throw new IllegalArgumentException("The order does not exist");
+            throw new NotFound("The order does not exist");
         } else if (!order.getIdCustomer().equals(user.getId())) {
-            throw new IllegalArgumentException("The order does not belong to the customer");
+            throw new NotBelong("The order does not belong to the customer");
         }
         Integer orderId = idOrder.intValue();
         List<TraceabilityModel> traceabilityModels   = traceability.getAllTraceability(orderId);
         if(traceabilityModels.isEmpty())
-            throw new IllegalArgumentException("There are no traceability");
+            throw new NotFound("There are no traceability");
         return traceabilityModels;
 
     }

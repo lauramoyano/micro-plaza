@@ -20,8 +20,8 @@ public class OrderAdapter implements IOrderPersistencePort {
 
     @Override
     public Order save(Order order) {
-        final OrderEntity orderEntity = orderMapper.mapOrderToOrderEntity(order);
-        final OrderEntity orderEntitySaved = orderRepository.save(orderEntity);
+        OrderEntity orderEntity = orderMapper.mapOrderToOrderEntity(order);
+        OrderEntity orderEntitySaved = orderRepository.save(orderEntity);
         return orderMapper.mapOrderEntityToOrder(orderEntitySaved);
     }
 

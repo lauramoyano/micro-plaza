@@ -1,6 +1,10 @@
 package com.pragma.restaurantcrud.domain.usecase;
 
 import com.pragma.restaurantcrud.domain.api.IEmployeeService;
+import com.pragma.restaurantcrud.domain.exeptions.AlreadyExist;
+import com.pragma.restaurantcrud.domain.exeptions.InvalidData;
+import com.pragma.restaurantcrud.domain.exeptions.NotBelong;
+import com.pragma.restaurantcrud.domain.exeptions.NotFound;
 import com.pragma.restaurantcrud.domain.models.*;
 import com.pragma.restaurantcrud.domain.spi.persistence.IEmployeePersistencePort;
 import com.pragma.restaurantcrud.domain.spi.persistence.IOrderPersistencePort;
@@ -13,7 +17,6 @@ import com.pragma.restaurantcrud.infrastructure.output.client.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,13 +49,13 @@ public class EmployeeUsecase implements IEmployeeService{
         User user = this.userGateway.getUserByEmail(email, token);
 
         if (user == null)
-            throw new IllegalArgumentException("User not found");
+            throw new NotFound("User not found");
         final Restaurant restaurant =  restaurantPersistencePort.findRestaurantById(employeeRestaurant.getIdRestaurant());
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
 
         if (!restaurant.getIdOwner().equals(user.getId()))
-            throw new IllegalArgumentException("The user is not the owner of the restaurant");
+            throw new NotBelong("The user is not the owner of the restaurant");
         employeeRestaurant.setIdRestaurant(restaurant.getIdRestaurant());
         return this.employeePersistencePort.save(employeeRestaurant);
     }
@@ -64,14 +67,13 @@ public class EmployeeUsecase implements IEmployeeService{
         String email = jwtProvider.getAuthentication(token.replace("Bearer ", "").trim()).getName();
         User user = this.userGateway.getUserByEmail(email, token);
         EmployeeRestaurant userEmployeeFound = this.employeePersistencePort.findById(user.getId());
-        //find restaurant by employee and validate if exists
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(userEmployeeFound.getIdRestaurant());
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
 
-        final Page<Order> orders = this.orderPersistencePort.findAllOrdersByStatusAndSizeItemsByPage(PageRequest.of(page, size), restaurant.getIdRestaurant(), status);
+        Page<Order> orders = this.orderPersistencePort.findAllOrdersByStatusAndSizeItemsByPage(PageRequest.of(page, size), restaurant.getIdRestaurant(), status);
         if(orders.isEmpty())
-            throw new IllegalArgumentException("There are no orders");
+            throw new NotFound("There are no orders");
 
         return orders;
     }
@@ -84,7 +86,7 @@ public class EmployeeUsecase implements IEmployeeService{
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
 
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
 
         List<Order> ordersAssigned = new ArrayList<>();
 
@@ -93,11 +95,11 @@ public class EmployeeUsecase implements IEmployeeService{
             String emailCustomer= this.userGateway.getUserById(orderFoundToAssignEmployee.getIdCustomer(), token).getEmail();
 
             if (orderFoundToAssignEmployee == null) {
-                throw new IllegalArgumentException("The order does not exist");
+                throw new NotFound("The order does not exist");
             } else if (orderFoundToAssignEmployee.getIdEmployeeRestaurant() != null) {
-                throw new IllegalArgumentException("This order was assigned to any employee");
+                throw new NotBelong("This order was assigned to any employee");
             } else if (!userEmployeeFound.getIdRestaurant().equals(orderFoundToAssignEmployee.getRestaurant().getIdRestaurant())) {
-                throw new IllegalArgumentException("The employee does not belong to this restaurant");
+                throw new NotBelong("The employee does not belong to this restaurant");
             }
 
             orderFoundToAssignEmployee.setIdEmployeeRestaurant(userEmployeeFound);
@@ -130,23 +132,23 @@ public class EmployeeUsecase implements IEmployeeService{
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
         LocalDateTime date = LocalDateTime.now();
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
 
         Order orderFound = this.orderPersistencePort.findById(idOrder);
 
         if (orderFound == null) {
-            throw new IllegalArgumentException("The order does not exist");
+            throw new NotFound("The order does not exist");
         } else if (!userEmployeeFound.getIdRestaurant().equals(orderFound.getRestaurant().getIdRestaurant())) {
-            throw new IllegalArgumentException("The employee does not belong to this restaurant");
+            throw new NotBelong("The employee does not belong to this restaurant");
         } else if (!orderFound.getStatus().equals("IN_PREPARATION")) {
-            throw new IllegalArgumentException("The order is not in preparation");
+            throw new InvalidData("The order is not in preparation");
         }
         LocalDateTime startDate = traceabilityService.getTraceability(orderFound.getIdOrder().intValue(), "IN_PREPARATION").getOrderStartDate();
 
         UserDto userCustomerToNotifyOfYourOrder = this.userGateway.getUserById( orderFound.getIdCustomer(), token);
         Long pinGenerated = encryptOrderId(orderFound.getIdOrder());
         String emailCustomer= this.userGateway.getUserById(orderFound.getIdCustomer(), token).getEmail();
-        final String message = "Your order is ready to be delivered, the pin is: " + pinGenerated;
+        String message = "Your order is ready to be delivered, the pin is: " + pinGenerated;
         PinMessage pinMessage = new PinMessage(pinGenerated, userCustomerToNotifyOfYourOrder.getName(),  userCustomerToNotifyOfYourOrder.getPhone(), restaurant.getName(), message);
          messengerService.sendNotification(pinMessage, token);
         orderFound.setStatus("READY");
@@ -177,17 +179,17 @@ public class EmployeeUsecase implements IEmployeeService{
         Long idRestaurant = userEmployeeFound.getIdRestaurant();
         Restaurant restaurant = this.restaurantPersistencePort.findRestaurantById(idRestaurant);
         if (restaurant == null)
-            throw new IllegalArgumentException("Restaurant not found");
+            throw new NotFound("Restaurant not found");
         Order orderFound = this.orderPersistencePort.findById(decryptOrderPin(String.valueOf(idOrder)));
         String emailCustomer= this.userGateway.getUserById(orderFound.getIdCustomer(), token).getEmail();
         if (orderFound == null) {
-            throw new IllegalArgumentException("The order does not exist");
+            throw new NotFound("The order does not exist");
         } else if (!orderFound.getStatus().equals("READY")) {
-            throw new IllegalArgumentException("The order is not ready");
+            throw new InvalidData("The order is not ready");
         }else if (orderFound.getIdEmployeeRestaurant() == null) {
-            throw new IllegalArgumentException("The order has not been assigned to any employee");
+            throw new NotBelong("The order has not been assigned to any employee");
         }else if (!userEmployeeFound.getIdRestaurant().equals(orderFound.getRestaurant().getIdRestaurant())) {
-            throw new IllegalArgumentException("The employee does not belong to this restaurant");
+            throw new NotBelong("The employee does not belong to this restaurant");
         }
         LocalDateTime startDate = traceabilityService.getTraceability(orderFound.getIdOrder().intValue(), "IN_PREPARATION").getOrderStartDate();
 

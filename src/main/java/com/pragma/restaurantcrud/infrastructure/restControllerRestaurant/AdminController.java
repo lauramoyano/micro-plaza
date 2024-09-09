@@ -20,7 +20,10 @@ public class AdminController {
 
     @PostMapping("/createRestaurant")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<CreateRestaurantResponse> createRestaurant(@RequestBody CreateRestaurantDto createRestaurantDto,@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+    public ResponseEntity<CreateRestaurantResponse> createRestaurant(
+            @RequestBody CreateRestaurantDto createRestaurantDto,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+
         CreateRestaurantResponse createRestaurantResponse = adminService.createRestaurant(createRestaurantDto, token);
         return new ResponseEntity<>(createRestaurantResponse, HttpStatus.CREATED);
 

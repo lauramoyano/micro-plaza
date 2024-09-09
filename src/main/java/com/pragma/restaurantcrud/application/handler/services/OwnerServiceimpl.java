@@ -55,8 +55,8 @@ public class OwnerServiceimpl implements IOwnerServiceHandler {
 
     @Override
     public EmployeeRestaurantResponse saveUserEmployeeInTheRestaurant(EmployeeRestaurantRequest employeeRestaurantRequest, String token) {
-        final EmployeeRestaurant employeeRestaurant = employeeRequestMapper.employeeRestaurantRequestDtoToEmployeeRestaurantModel(employeeRestaurantRequest);
-        final EmployeeRestaurant employeeRestaurantSaved = employeeService.createEmployeeRestaurant(employeeRestaurant, token);
+        EmployeeRestaurant employeeRestaurant = employeeRequestMapper.employeeRestaurantRequestDtoToEmployeeRestaurantModel(employeeRestaurantRequest);
+        EmployeeRestaurant employeeRestaurantSaved = employeeService.createEmployeeRestaurant(employeeRestaurant, token);
         return employeeResponseMapper.employeeRestaurantToEmployeeRestaurantResponse(employeeRestaurantSaved);
     }
 

@@ -48,7 +48,7 @@ public class CustomerServiceimpl implements ICustomerServiceHandler {
     @Override
     public CreateOrderResponse createOrder(CreateOrderRequest createOrderRequest, String token) {
         Order order = customerRequestMapper.orderRequestToOrder(createOrderRequest);
-        final List<OrderDish> orderDishes = createOrderRequest.getDishes().stream()
+        List<OrderDish> orderDishes = createOrderRequest.getDishes().stream()
                 .map(customerRequestMapper::dishInOrderRequestToOrderDish)
                         .toList();
 
